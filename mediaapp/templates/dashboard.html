@@ -1,0 +1,250 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Media Processing Dashboard</title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/style.css' %}"
+    >
+
+</head>
+
+
+<body>
+
+    <nav class="navbar">
+
+        <div class="container navbar-content">
+
+            <h2>
+                Media Processing System
+            </h2>
+
+            <div>
+
+                <a href="/">
+                    Dashboard
+                </a>
+
+                <a href="/upload/">
+                    Upload Media
+                </a>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+    <main class="main-content">
+
+        <div class="container">
+
+            <h1>
+                Media Processing Dashboard
+            </h1>
+
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+
+                    <h3>
+                        Total Files
+                    </h3>
+
+                    <strong>
+                        {{ total_files }}
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <h3>
+                        Total Jobs
+                    </h3>
+
+                    <strong>
+                        {{ total_jobs }}
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <h3>
+                        Pending
+                    </h3>
+
+                    <strong>
+                        {{ pending_jobs }}
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <h3>
+                        Processing
+                    </h3>
+
+                    <strong>
+                        {{ processing_jobs }}
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <h3>
+                        Completed
+                    </h3>
+
+                    <strong>
+                        {{ completed_jobs }}
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <h3>
+                        Failed
+                    </h3>
+
+                    <strong>
+                        {{ failed_jobs }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="section-header">
+
+                    <h2>
+                        Recent Processing Jobs
+                    </h2>
+
+                    <a
+                        href="/upload/"
+                        class="btn"
+                    >
+                        + Upload Media
+                    </a>
+
+                </div>
+
+
+                {% if recent_jobs %}
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    File
+                                </th>
+
+                                <th>
+                                    Type
+                                </th>
+
+                                <th>
+                                    Operation
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th>
+                                    Created
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for job in recent_jobs %}
+
+                                <tr>
+
+                                    <td>
+                                        {{ job.media.original_name }}
+                                    </td>
+
+                                    <td>
+                                        {{ job.media.media_type }}
+                                    </td>
+
+                                    <td>
+                                        {{ job.operation }}
+                                    </td>
+
+                                    <td>
+
+                                        <span class="status status-{{ job.status|lower }}">
+
+                                            {{ job.status }}
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+                                        {{ job.created_at|date:"d M Y H:i" }}
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                {% else %}
+
+                    <p>
+                        No processing jobs yet.
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

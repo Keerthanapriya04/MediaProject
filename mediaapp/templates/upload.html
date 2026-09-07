@@ -1,0 +1,137 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Upload Media</title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/style.css' %}"
+    >
+
+</head>
+
+<body>
+
+    <nav class="navbar">
+
+        <div class="container navbar-content">
+
+            <h2>
+                Media Processing System
+            </h2>
+
+            <div>
+
+                <a href="/">
+                    Dashboard
+                </a>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+    <main class="main-content">
+
+        <div class="container">
+
+            <div class="card">
+
+                <h1>
+                    Upload Media
+                </h1>
+
+                <p>
+                    Upload an image or video for processing.
+                </p>
+
+
+                <form
+                    method="POST"
+                    enctype="multipart/form-data"
+                    class="upload-form"
+                >
+
+                    {% csrf_token %}
+
+
+                    {% if form.non_field_errors %}
+
+                        <div class="error">
+
+                            {{ form.non_field_errors }}
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <div class="form-group">
+
+                        <label for="{{ form.file.id_for_label }}">
+                            Select Image or Video
+                        </label>
+
+                        {{ form.file }}
+
+                        {% if form.file.errors %}
+
+                            <div class="error">
+                                {{ form.file.errors }}
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="{{ form.operation.id_for_label }}">
+                            Processing Operation
+                        </label>
+
+                        {{ form.operation }}
+
+                        {% if form.operation.errors %}
+
+                            <div class="error">
+                                {{ form.operation.errors }}
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="btn"
+                    >
+                        Upload & Create Job
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>
