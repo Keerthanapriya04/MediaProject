@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=mediadb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=0911
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+
+  celery:
+    build: .
+    command: celery -A Mediaproject worker -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - db

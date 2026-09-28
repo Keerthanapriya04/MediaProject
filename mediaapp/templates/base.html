@@ -1,38 +1,34 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Media Processing System</title>
-
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
+<body class="bg-light">
 
-<body>
-
-    <nav class="navbar">
-        <div class="container navbar-content">
-            <h2>
-                Media Processing System
-            </h2>
-
-            <a href="/">
-                Dashboard
-            </a>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% url 'upload' %}">Media Processing System</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link btn btn-outline-light btn-sm px-3 me-2 text-white" href="{% url 'upload' %}">Upload</a>
+                <a class="nav-link btn btn-outline-light btn-sm px-3 text-white" href="{% url 'dashboard' %}">Dashboard</a>
+            </div>
         </div>
     </nav>
 
-    <main class="main-content">
-        <div class="container">
-
-            {% block content %}
-            {% endblock %}
-
-        </div>
+    <!-- Main Content -->
+    <main class="container">
+        {% block content %}
+        {% endblock %}
     </main>
 
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

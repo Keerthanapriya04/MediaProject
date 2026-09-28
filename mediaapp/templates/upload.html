@@ -1,137 +1,24 @@
-{% load static %}
+{% extends 'base.html' %}
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Upload Media</title>
-
-    <link
-        rel="stylesheet"
-        href="{% static 'css/style.css' %}"
-    >
-
-</head>
-
-<body>
-
-    <nav class="navbar">
-
-        <div class="container navbar-content">
-
-            <h2>
-                Media Processing System
-            </h2>
-
-            <div>
-
-                <a href="/">
-                    Dashboard
-                </a>
-
-            </div>
-
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow p-4">
+            <h2 class="text-center mb-3">Upload Media</h2>
+            <p class="text-muted text-center">Upload an image or video for background processing.</p>
+            
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="id_original_file" class="form-label fw-bold">Select Image or Video:</label>
+                    
+                    <input type="file" name="original_file" id="id_original_file" class="form-control" accept="image/*,video/*" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Upload & Create Job</button>
+            </form>
         </div>
-
-    </nav>
-
-
-    <main class="main-content">
-
-        <div class="container">
-
-            <div class="card">
-
-                <h1>
-                    Upload Media
-                </h1>
-
-                <p>
-                    Upload an image or video for processing.
-                </p>
-
-
-                <form
-                    method="POST"
-                    enctype="multipart/form-data"
-                    class="upload-form"
-                >
-
-                    {% csrf_token %}
-
-
-                    {% if form.non_field_errors %}
-
-                        <div class="error">
-
-                            {{ form.non_field_errors }}
-
-                        </div>
-
-                    {% endif %}
-
-
-                    <div class="form-group">
-
-                        <label for="{{ form.file.id_for_label }}">
-                            Select Image or Video
-                        </label>
-
-                        {{ form.file }}
-
-                        {% if form.file.errors %}
-
-                            <div class="error">
-                                {{ form.file.errors }}
-                            </div>
-
-                        {% endif %}
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="{{ form.operation.id_for_label }}">
-                            Processing Operation
-                        </label>
-
-                        {{ form.operation }}
-
-                        {% if form.operation.errors %}
-
-                            <div class="error">
-                                {{ form.operation.errors }}
-                            </div>
-
-                        {% endif %}
-
-                    </div>
-
-
-                    <button
-                        type="submit"
-                        class="btn"
-                    >
-                        Upload & Create Job
-                    </button>
-
-                </form>
-
-            </div>
-
-        </div>
-
-    </main>
-
-</body>
-
-</html>
+    </div>
+</div>
+{% endblock %}

@@ -1,158 +1,69 @@
-from pathlib import Path
-
-from django.contrib import messages
-from django.shortcuts import redirect, render
-
+from datetime import timedelta
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.utils import timezone
+from .models import MediaJob
 from .forms import MediaUploadForm
-from .models import MediaFile, ProcessingJob
+from .tasks import process_media_task
 
+def upload_view(request):
+    if request.method == 'POST':
+        form = MediaUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            job = form.save()
+            process_media_task(job.id)
+            return redirect('job_monitoring', job_id=job.id)
+        else:
+            print("Form Errors:", form.errors)
+    else:
+        form = MediaUploadForm()
+    return render(request, 'upload.html', {'form': form})
 
-def dashboard(request):
-    """
-    Display the main media processing dashboard.
-    """
+def dashboard_view(request):
+    all_jobs = MediaJob.objects.all().order_by('-created_at')
+    
+    context = {
+        'recent_jobs': all_jobs[:15],
+        'total_files': all_jobs.count(),
+        'total_jobs': all_jobs.count(),
+        'pending_jobs': all_jobs.filter(status='PENDING').count(),
+        'processing_jobs': all_jobs.filter(status='PROCESSING').count(),
+        'completed_jobs': all_jobs.filter(status='COMPLETED').count(),
+        'failed_jobs': all_jobs.filter(status='FAILED').count(),
+    }
+    return render(request, 'dashboard.html', context)
 
-    total_files = MediaFile.objects.count()
-
-    total_jobs = ProcessingJob.objects.count()
-
-    pending_jobs = ProcessingJob.objects.filter(
-        status="PENDING"
-    ).count()
-
-    processing_jobs = ProcessingJob.objects.filter(
-        status="PROCESSING"
-    ).count()
-
-    completed_jobs = ProcessingJob.objects.filter(
-        status="COMPLETED"
-    ).count()
-
-    failed_jobs = ProcessingJob.objects.filter(
-        status="FAILED"
-    ).count()
-
-    recent_jobs = (
-        ProcessingJob.objects
-        .select_related("media")
-        .order_by("-created_at")[:10]
+def job_monitoring_view(request, job_id):
+    job = get_object_or_404(MediaJob, id=job_id)
+    
+    five_minutes_ago = timezone.now() - timedelta(minutes=5)
+    stuck_jobs = MediaJob.objects.filter(
+        created_at__lte=five_minutes_ago,
+        status__in=['PENDING', 'PROCESSING']
     )
+    failed_jobs = MediaJob.objects.filter(status='FAILED').order_by('-created_at')[:5]
 
     context = {
-        "total_files": total_files,
-        "total_jobs": total_jobs,
-        "pending_jobs": pending_jobs,
-        "processing_jobs": processing_jobs,
-        "completed_jobs": completed_jobs,
-        "failed_jobs": failed_jobs,
-        "recent_jobs": recent_jobs,
+        'job': job,
+        'stuck_jobs': stuck_jobs,
+        'failed_jobs': failed_jobs,
     }
+    return render(request, 'job_monitoring.html', context)
 
-    return render(
-        request,
-        "dashboard.html",
-        context
-    )
+def api_job_status(request, job_id):
+    job = get_object_or_404(MediaJob, id=job_id)
+    return JsonResponse({
+        'status': job.status,
+        'processed_url': job.processed_file.url if job.processed_file else None,
+        'error': job.error_message
+    })
 
-
-def upload_media(request):
-    """
-    Handle image/video upload and create a processing job.
-    """
-
-    if request.method == "POST":
-
-        form = MediaUploadForm(
-            request.POST,
-            request.FILES
-        )
-
-        if form.is_valid():
-
-            # --------------------------------------------
-            # Get uploaded file
-            # --------------------------------------------
-
-            uploaded_file = form.cleaned_data["file"]
-
-            # --------------------------------------------
-            # Create MediaFile object
-            # --------------------------------------------
-
-            media_file = form.save(commit=False)
-
-            # Store only the filename
-            media_file.original_name = Path(
-                uploaded_file.name
-            ).name
-
-            # --------------------------------------------
-            # Detect media type
-            # --------------------------------------------
-
-            if uploaded_file.content_type.startswith("image/"):
-
-                media_file.media_type = "IMAGE"
-
-            elif uploaded_file.content_type.startswith("video/"):
-
-                media_file.media_type = "VIDEO"
-
-            else:
-
-                form.add_error(
-                    "file",
-                    "Unsupported media type."
-                )
-
-                return render(
-                    request,
-                    "upload.html",
-                    {"form": form}
-                )
-
-            # --------------------------------------------
-            # Store file size
-            # --------------------------------------------
-
-            media_file.file_size = uploaded_file.size
-
-            # --------------------------------------------
-            # Save file
-            # --------------------------------------------
-
-            media_file.save()
-
-            # --------------------------------------------
-            # Create processing job
-            # --------------------------------------------
-
-            ProcessingJob.objects.create(
-                media=media_file,
-                operation=form.cleaned_data["operation"],
-                status="PENDING",
-            )
-
-            # --------------------------------------------
-            # Success message
-            # --------------------------------------------
-
-            messages.success(
-                request,
-                "Media uploaded successfully. "
-                "Processing job created."
-            )
-
-            return redirect("dashboard")
-
-    else:
-
-        form = MediaUploadForm()
-
-    return render(
-        request,
-        "upload.html",
-        {
-            "form": form
-        }
-    )
+def delete_job_view(request, job_id):
+    if request.method == 'POST':
+        job = get_object_or_404(MediaJob, id=job_id)
+        if job.original_file:
+            job.original_file.delete(save=False)
+        if job.processed_file:
+            job.processed_file.delete(save=False)
+        job.delete()
+    return redirect('dashboard')
